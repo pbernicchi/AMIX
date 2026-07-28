@@ -67,5 +67,13 @@ needs them re-enabled:
     Ciphers +aes128-cbc,3des-cbc
     MACs +hmac-sha1
 
-That weakens the Mac's sshd for every client; scope it with a
-`Match Address 10.0.2.0/24` block or revert it afterwards.
+**This weakens your SSH server for every client that connects to it**, not just
+the emulator. SHA-1 key exchange and `ssh-rsa` are disabled by default in
+modern OpenSSH for good reasons. Scope it to the emulator's subnet:
+
+    Match Address 10.0.2.0/24
+        KexAlgorithms +diffie-hellman-group-exchange-sha1,diffie-hellman-group1-sha1
+        HostkeyAlgorithms +ssh-rsa,ssh-dss
+
+or revert it when you are done. Do not apply it globally on any machine
+reachable from a network you do not control.
