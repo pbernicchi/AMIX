@@ -11,3 +11,8 @@
 tape_*/
 floppies/
 packages/
+
+# Source media — original ROM and TOSEC distribution images.
+# Kept alongside the project but never committed (size + not redistributable).
+media/
+*.zip
