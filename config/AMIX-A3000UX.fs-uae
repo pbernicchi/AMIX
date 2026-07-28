@@ -1,0 +1,34 @@
+# FS-UAE configuration saved by FS-UAE Launcher
+# Last saved: 2026-07-27 14:42:36
+
+[fs-uae]
+accuracy = 0
+amiga_model = A3000
+chip_memory = 2048
+floppy_drive_speed = 200
+floppy_drive_volume_empty = 0
+floppy_image_0 = /Users/pbernicc/Documents/FS-UAE/AMIX/floppies/amix_21_boot.adf
+floppy_image_1 = /Users/pbernicc/Documents/FS-UAE/AMIX/floppies/amix_21_root.adf
+floppy_image_2 = /Users/pbernicc/Documents/FS-UAE/AMIX/floppies/amix_21_patch_oddsocks.adf
+floppy_image_3 = /Users/pbernicc/Documents/FS-UAE/AMIX/floppies/amix_21_patch_2.1p2a.adf
+floppy_image_4 = /Users/pbernicc/Documents/FS-UAE/AMIX/floppies/xfer_dns.adf
+floppy_image_5 = /Users/pbernicc/Documents/FS-UAE/AMIX/floppies/xfer_setclk_raw.adf
+hard_drive_0 = /Users/pbernicc/Documents/FS-UAE/AMIX/a3000ux.hdf
+hard_drive_0_controller = scsi6
+hard_drive_0_type = rdb
+keyboard_key_f10 = action_warp
+keyboard_key_w_ctrl = action_warp
+kickstart_file = /Users/pbernicc/Documents/FS-UAE/Kickstarts/amiga-os-204-a3000.rom
+motherboard_ram = 16384
+network_card = a2065
+uae_blitter_cycle_exact = false
+uae_cachesize = 0
+uae_cpu_compatible = false
+uae_cpu_cycle_exact = false
+uae_cpu_model = 68030
+uae_fpu_model = 68882
+uae_gfxcard_size = 4
+uae_gfxcard_type = A2410
+uae_mmu_model = 68030
+uae_uaehf0 = tape0,ro,:/Users/pbernicc/Documents/FS-UAE/AMIX/tape_xfer,0,0,0,512,0,,scsi4,SCSI1
+uae_waiting_blits = true

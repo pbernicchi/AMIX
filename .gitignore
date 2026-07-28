@@ -1,0 +1,13 @@
+# Disk / ROM / tape images — large and not redistributable
+*.hdf
+*.adf
+*.rom
+*.key
+*.pkg
+*.pkg.gz
+*.tar
+*.cpio
+*.iso
+tape_*/
+floppies/
+packages/
