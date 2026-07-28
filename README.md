@@ -12,7 +12,7 @@ UNIX_System_V amix 4.0 2.1c 0800430 Amiga (Unlimited) m68k
 
 | Path | |
 |---|---|
-| [`wiki/`](wiki/Home.md) | Full setup documentation, start at `Home.md` |
+| [**Wiki**](https://github.com/pbernicchi/AMIX/wiki) | Full setup documentation — hosted in the repository Wiki |
 | [`config-reference.md`](config-reference.md) | Working reference for the running system |
 | [`config/`](config/) | The FS-UAE configuration |
 | [`AMIX.command`](AMIX.command) | Double-clickable launcher, with a same-instance guard |
@@ -44,7 +44,7 @@ Local copies live in `media/`, which is gitignored and never committed.
 
 ## A warning about the SSH instructions
 
-[Networking and DNS](wiki/05-Networking-and-DNS.md) explains how to re-enable
+[Networking and DNS](https://github.com/pbernicchi/AMIX/wiki/05-Networking-and-DNS) explains how to re-enable
 SHA-1 key exchange and `ssh-rsa` host keys in macOS's `sshd_config`. That is
 necessary to reach an OpenSSH 3.9 build from 2004, and it **meaningfully
 weakens your SSH server for every client that connects to it**. Scope it to the
@@ -54,14 +54,16 @@ apply it to anything exposed to a network you do not control.
 ## Licence
 
 Code (`AMIX.command`, `config/`) is MIT — see [LICENSE](LICENSE).
-Documentation (`README.md`, `CREDITS.md`, `config-reference.md`, `memory/`,
-`wiki/`) is CC BY 4.0 — see [LICENSE-DOCS](LICENSE-DOCS).
+Documentation (`README.md`, `CREDITS.md`, `config-reference.md`, `memory/`, and
+the [Wiki](https://github.com/pbernicchi/AMIX/wiki)) is CC BY 4.0 — see
+[LICENSE-DOCS](LICENSE-DOCS).
 
 ## Credit
 
 The installation procedure, distribution media and SVR4 package collection come
 from the **Amiga Unix Wiki** — <https://www.amigaunix.com/>. Departures from
-that procedure are noted as such in the wiki pages here.
+that procedure are noted as such in the
+[Wiki](https://github.com/pbernicchi/AMIX/wiki) here.
 
 Full acknowledgements in [CREDITS.md](CREDITS.md) — this build rests on the
 work of many people, in particular Michael Parson's SVR4 package bundles and

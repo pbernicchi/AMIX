@@ -37,7 +37,7 @@ been possible. If you find this repository useful, go and read theirs.
 
 ## What is original here
 
-The emulator configuration and the findings recorded in [`wiki/`](wiki/Home.md)
+The emulator configuration and the findings recorded in [the Wiki](https://github.com/pbernicchi/AMIX/wiki)
 and [`config-reference.md`](config-reference.md): the boot failures and their
 causes, the SCSI bus limits, the tape-based transfer route, the archive format
 requirements, and the macOS-specific networking constraints. Those are marked
