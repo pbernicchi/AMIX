@@ -57,9 +57,24 @@ generated `~/Documents/FS-UAE/Cache/Logs/debug.uae`):
   ports (21-23, 80) and FS-UAE runs unprivileged, so nothing binds — verified
   by `lsof` against a fully-booted guest: zero listeners. `uae_slirp_redir` /
   `uae_slirp_ports` are accepted by name without value validation, so a
-  `result: 1` in the log means nothing. Way in: a reverse tunnel opened from
-  AMIX (`ssh -R 2222:localhost:22 user@10.0.2.2`), which also needs legacy
-  KEX/hostkey algorithms re-enabled in the Mac's sshd_config.
+  `result: 1` in the log means nothing. Slirp only fully starts once the guest
+  brings up the A2065, so no-hard-drive tests can't show this.
+- **The way in is to invert direction: the guest connects OUT** (outbound
+  through slirp is unrestricted; 10.0.2.2 = Mac host). Two flavours: a reverse
+  *SSH tunnel* for a full-TTY login (`ssh -R 2222:localhost:22 user@10.0.2.2`,
+  needs legacy KEX/hostkey re-enabled in the Mac's sshd_config), or a raw
+  reverse *shell* (`revsh.c`: socket→connect 10.0.2.2:port→dup to 0,1,2→exec
+  /bin/sh, built `-lsocket -lnsl`; `nc -l 4444` on the Mac first).
+- **HTTP is the easy file-transfer path once networking is up.** Serve on the
+  Mac — `cd ~/Documents/FS-UAE/AMIX/http && python3 -m http.server 8000 &` — and
+  pull on the guest with `lynx -source http://10.0.2.2:8000/<file> > <dest>`
+  (lynx is installed; `-source` dumps raw bytes, so binaries work too). This is
+  NOT an FS-UAE feature — it's a plain Mac-side server reached through slirp's
+  host alias. Helper sources (`revsh.c`, etc.) live in that `http/` dir.
+- **bash 2.05b was built from source** with the gcc 2.7.2.3 toolchain, fetched
+  over that HTTP path (pull tarball → configure/make), and is now root's login
+  shell. This **supersedes wiki 08's "There is no bash in the collection"** —
+  ksh is no longer the only good interactive shell present.
 - The A2065 dumps every packet in full hex to the log; expect ~1.5 GB per two
   hours of networked uptime. There is no option to disable it (the binary only
   has `logs_dir`, `log_flush`, `save_log`); symlink `fs-uae.log.txt` to
@@ -67,8 +82,9 @@ generated `~/Documents/FS-UAE/Cache/Logs/debug.uae`):
 - Removing `hard_drive_1*` from the config *file* does not detach the drive —
   the FS-UAE Launcher keeps its own drive list and passes it at launch anyway.
   Clear the slot in the Launcher GUI and verify in `fs-uae.log.txt`.
-- File transfer in: write the payload to a **floppy image** and read the raw
-  device (`dd if=/dev/dsk/fd0` or `tar xvf /dev/dsk/fd0`) — the mechanism the
+- File transfer in (**bootstrap path, before networking is up** — use the HTTP
+  path above once it is): write the payload to a **floppy image** and read the
+  raw device (`dd if=/dev/dsk/fd0` or `tar xvf /dev/dsk/fd0`) — the mechanism the
   Commodore patch disk itself uses. AMIX's tar segfaults on ustar archives whose
   uname/gname don't exist locally; build with `--format=v7 --uid 0 --gid 0`.
   FS-UAE reads `floppy_image_*` only at launch, so to get a new file in without

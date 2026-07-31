@@ -135,8 +135,13 @@ All are privileged, and FS-UAE runs unprivileged, so none can be bound —
 verified: with `A2065: 'slirp_inbound'` in the log and AMIX fully booted,
 `lsof -nP -iTCP -sTCP:LISTEN -p <pid>` shows **no listeners at all**.
 `uae_slirp_redir` / `uae_slirp_ports` exist as options and the core accepts
-them, but it accepts the option *name* without validating the value, so
-`result: 1` proves nothing. `tcp:2222:22` had no effect.
+them (`result: 1`) but never register a host forward with libslirp. Tested
+**properly with a booted guest**: config loaded `uae_slirp_redir = tcp:2323:23`,
+the log confirmed `SLIRP polling thread started` and `Slirp start`, and still
+only the serial listener appeared — no `2323`. (Earlier no-hard-drive tests were
+worthless here: without a booted guest slirp never fully starts, so no forward
+could appear regardless. The polling thread only starts once the guest brings
+up the A2065.)
 
 Outbound is unrestricted, so the way in is a **reverse tunnel opened from
 AMIX** (needs Remote Login on the Mac):
@@ -149,6 +154,13 @@ AMIX** (needs Remote Login on the Mac):
 Expect to have to re-enable legacy crypto in the Mac's
 `/etc/ssh/sshd_config` — OpenSSH 3.9 offers only SHA-1 key exchange and
 `ssh-rsa`/`ssh-dss` host keys, all disabled by default in modern OpenSSH.
+
+To make that tunnel survive **guest reboots**, install `guest/etc/init.d/tunnel`
+(in this repo) and link it as `/etc/rc2.d/S99tunnel` — the same rc convention as
+`S70prngd` / `S99sshd`. It runs an auto-reconnect loop with key auth. OpenSSH 3.9
+predates `ExitOnForwardFailure`, so the loop — not ssh — handles reconnection;
+set `ClientAliveInterval 60` on the Mac so a dead tunnel frees port 2222 for the
+next attempt.
 
 ## AMIX-side notes
 
@@ -163,7 +175,22 @@ Expect to have to re-enable legacy crypto in the Mac's
 
 ## Getting files into AMIX
 
-Write the payload to a floppy image and read the raw device:
+**Once networking is up, HTTP is the easy path.** Outbound through slirp is
+unrestricted and the Mac host is `10.0.2.2`, so serve the files on the Mac and
+pull them from the guest — no media juggling:
+
+    # on the Mac
+    cd ~/Documents/FS-UAE/AMIX/http && python3 -m http.server 8000 &
+    # in AMIX (lynx is installed; -source dumps raw bytes, so binaries work too)
+    lynx -source http://10.0.2.2:8000/revsh.c > /tmp/revsh.c
+
+This is a plain Python server on the Mac reached through slirp's host alias —
+**not** an FS-UAE feature. It's how the from-source builds (bash 2.05b, the gcc
+toolchain helpers) and `revsh.c` were pulled in; keep the served files in
+`~/Documents/FS-UAE/AMIX/http/`.
+
+Before networking exists, use the **floppy** bootstrap instead. Write the
+payload to a floppy image and read the raw device:
 
     dd if=/dev/dsk/fd0 of=setclk bs=512 count=17     # raw binary
     tar xvf /dev/dsk/fd0                              # v7 tar archive

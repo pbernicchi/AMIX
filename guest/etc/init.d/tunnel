@@ -1,0 +1,50 @@
+#!/sbin/sh
+#
+# tunnel - persistent reverse SSH tunnel from AMIX to the Mac host.
+#
+# Opens Mac:localhost:2222 -> AMIX:22 so you can reach the guest from the Mac
+# (`ssh -p 2222 root@localhost`) even though FS-UAE's unprivileged slirp cannot
+# do inbound forwards. Runs an auto-reconnect loop: OpenSSH 3.9 predates
+# -o ExitOnForwardFailure, so the loop (not ssh) owns reconnection.
+#
+# Install on the guest:
+#   cp tunnel /etc/init.d/tunnel && chmod 755 /etc/init.d/tunnel
+#   ln -s /etc/init.d/tunnel /etc/rc2.d/S99tunnel   # 't' sorts after S99sshd
+#   ln -s /etc/init.d/tunnel /etc/rc0.d/K01tunnel   # torn down on shutdown -i0
+#
+# Prerequisites:
+#   - key auth: ssh-keygen -t rsa -f /.ssh/id_rsa -N '' ; put the pubkey in the
+#     Mac's ~MACUSER/.ssh/authorized_keys
+#   - the Mac's sshd_config Match block re-enables ssh-rsa (see wiki 05); add
+#     ClientAliveInterval 60 there so a dead tunnel frees port 2222
+#   - the default route is already made permanent in /etc/inet/rc.inet
+
+MAC=10.0.2.2
+MACUSER=pbernicc
+KEY=/.ssh/id_rsa
+RPORT=2222
+PIDFILE=/var/run/tunnel.pid
+
+case "$1" in
+start)
+	( while : ; do
+		/usr/local/bin/ssh -N \
+			-o BatchMode=yes \
+			-o StrictHostKeyChecking=no \
+			-o ServerAliveInterval=30 \
+			-o ServerAliveCountMax=3 \
+			-i "$KEY" \
+			-R ${RPORT}:localhost:22 \
+			${MACUSER}@${MAC} >/dev/null 2>&1
+		sleep 15
+	done ) &
+	echo $! > $PIDFILE
+	;;
+stop)
+	[ -f $PIDFILE ] && kill `cat $PIDFILE` 2>/dev/null
+	rm -f $PIDFILE
+	;;
+*)
+	echo "usage: $0 {start|stop}"
+	;;
+esac
