@@ -11,3 +11,5 @@ wiki [07 Moving Files In](https://github.com/pbernicchi/AMIX/wiki/07-Moving-File
 | [`etc/init.d/revsh`](etc/init.d/revsh) | Runs `/usr/local/sbin/revsh` at boot — reverse shell to a `nc` listener on the Mac. Links as `/etc/rc2.d/S99revsh`. |
 | [`src/revsh.c`](src/revsh.c) | Source for `revsh`: connects out and gives a **real pty** via `/dev/ptmx` + bash (job control, history, arrows, vi). Build `cc -o revsh revsh.c -lsocket -lnsl`. |
 | [`src/revsh-nopty.c`](src/revsh-nopty.c) | Fallback source: `bash -i` over the raw socket — a prompt but no pty. For systems where `/dev/ptmx` is unavailable. |
+| [`root/.inputrc`](root/.inputrc) | readline bindings so the Mac's Delete key (sends DEL `0x7f`) erases left. Install as `/.inputrc`. Fixes both the revsh and ssh-tunnel shells. |
+| [`root/.bashrc`](root/.bashrc) | `stty erase '^?'` so canonical-mode programs treat DEL as erase too. Install as `/.bashrc`. |
