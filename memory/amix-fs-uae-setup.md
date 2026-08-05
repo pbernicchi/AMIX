@@ -62,9 +62,15 @@ generated `~/Documents/FS-UAE/Cache/Logs/debug.uae`):
 - **The way in is to invert direction: the guest connects OUT** (outbound
   through slirp is unrestricted; 10.0.2.2 = Mac host). Two flavours: a reverse
   *SSH tunnel* for a full-TTY login (`ssh -R 2222:localhost:22 user@10.0.2.2`,
-  needs legacy KEX/hostkey re-enabled in the Mac's sshd_config), or a raw
-  reverse *shell* (`revsh.c`: socket→connect 10.0.2.2:port→dup to 0,1,2→exec
-  /bin/sh, built `-lsocket -lnsl`; `nc -l 4444` on the Mac first).
+  needs legacy KEX/hostkey re-enabled in the Mac's sshd_config), or a reverse
+  *shell* (`revsh.c`, `-lsocket -lnsl`; `nc -l 4444` on the Mac first). revsh
+  gets a **real pty by allocating /dev/ptmx itself** (grantpt/unlockpt, push
+  ptem/ldterm, bash on the slave) → `tty` shows /dev/pts/N, job control + vi
+  work. `script(1)` does NOT work over the socket (exits immediately, nested or
+  direct) — /dev/ptmx replaced it. For line editing (arrows, ^P/^N) the **Mac
+  listener must be raw** — `stty raw -echo; nc -l 4444; stty sane` — else the
+  cooked Mac tty line-buffers and readline never sees the keys. `revsh-nopty.c`
+  is the bash -i (no-pty) fallback; sources in the repo under `guest/src/`.
 - **HTTP is the easy file-transfer path once networking is up.** Serve on the
   Mac — `cd ~/Documents/FS-UAE/AMIX/http && python3 -m http.server 8000 &` — and
   pull on the guest with `lynx -source http://10.0.2.2:8000/<file> > <dest>`
