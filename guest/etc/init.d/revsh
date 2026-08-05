@@ -1,10 +1,11 @@
 #!/sbin/sh
 #
 # revsh - run the reverse shell at boot. The AMIX guest connects OUT to a
-# listener on the Mac host and execs bash under /usr/bin/script, so you get a
-# real pty (prompt, history, arrow keys). Start the listener on the Mac FIRST,
-# and loop it (Apple's nc has no -k):
-#     while : ; do nc -l 4444 ; done
+# listener on the Mac host; revsh allocates its own pty via /dev/ptmx and runs
+# bash on it, so you get a real terminal (job control, history, arrow keys, vi).
+# Start the listener on the Mac FIRST, and loop it (Apple's nc has no -k). Use a
+# raw listener for clean keystrokes:
+#     while : ; do stty raw -echo; nc -l 4444; stty sane; done
 #
 # Install on the guest:
 #   cp revsh /etc/init.d/revsh && chmod 755 /etc/init.d/revsh
