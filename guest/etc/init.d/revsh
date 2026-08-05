@@ -1,0 +1,36 @@
+#!/sbin/sh
+#
+# revsh - run the reverse shell at boot. The AMIX guest connects OUT to a
+# listener on the Mac host and execs bash under /usr/bin/script, so you get a
+# real pty (prompt, history, arrow keys). Start the listener on the Mac FIRST,
+# and loop it (Apple's nc has no -k):
+#     while : ; do nc -l 4444 ; done
+#
+# Install on the guest:
+#   cp revsh /etc/init.d/revsh && chmod 755 /etc/init.d/revsh
+#   ln -s /etc/init.d/revsh /etc/rc2.d/S99revsh   # single S; runs at init 2
+#   ln -s /etc/init.d/revsh /etc/rc0.d/K01revsh   # torn down on shutdown -i0
+#
+# /usr/local/sbin/revsh has its host/port compiled in, so it takes no arguments.
+
+REVSH=/usr/local/sbin/revsh
+PIDFILE=/var/run/revsh.pid
+
+case "$1" in
+start)
+	# Auto-reconnect loop: revsh exits when the far-end shell closes, so
+	# respawn it. For a one-shot at boot instead (your manual `revsh &`),
+	# replace the loop below with:  $REVSH >/dev/null 2>&1 &
+	( while : ; do
+		$REVSH >/dev/null 2>&1
+		sleep 15
+	done ) &
+	echo $! > $PIDFILE
+	;;
+stop)
+	[ -f $PIDFILE ] && kill `cat $PIDFILE` 2>/dev/null
+	rm -f $PIDFILE
+	;;
+*)
+	echo "usage: $0 {start|stop}" ;;
+esac
