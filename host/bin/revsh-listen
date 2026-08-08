@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# revsh-listen - Mac-side listener for the AMIX reverse shell.
+# Counterpart to guest/etc/init.d/revsh: the guest connects OUT to this, and
+# this gives its pty a raw terminal on the Mac so job control, history, arrows
+# and vi work. Your tty is restored no matter how this exits.
+#
+#   • While idle (no guest connected), Ctrl-C quits the listener.
+#   • During a session, Ctrl-C goes to the GUEST (interrupts the remote
+#     command); to end a session, exit the guest shell.
+#   • Loops by default to catch the guest's auto-reconnects; -1 does one shot.
+#
+# Usage: revsh-listen [-1] [port]        (port defaults to 4444)
+#
+# Prefers socat (brew install socat) for clean tty handling; falls back to nc.
+
+once=0
+[ "$1" = "-1" ] && { once=1; shift; }
+port=${1:-4444}
+
+[ -t 0 ] || { echo "revsh-listen: needs a terminal on stdin" >&2; exit 1; }
+
+saved=$(stty -g)
+trap 'stty "$saved" 2>/dev/null; exit 0' INT TERM HUP
+trap 'stty "$saved" 2>/dev/null' EXIT
+
+have_socat=0
+command -v socat >/dev/null 2>&1 && have_socat=1
+[ $have_socat = 0 ] && echo "revsh-listen: socat not found (brew install socat) —" \
+	"using nc; Ctrl-C won't stop it while idle" >&2
+
+session() {
+	if [ $have_socat = 1 ]; then
+		# tcp-listen FIRST so the tty stays cooked (Ctrl-C quits) until a
+		# client connects; socat opens the raw tty only after accept, and
+		# restores it on exit.
+		socat tcp-listen:"$port",reuseaddr file:"$(tty)",raw,echo=0
+	else
+		stty raw -echo
+		nc -l "$port"
+		stty "$saved" 2>/dev/null
+	fi
+}
+
+while :; do
+	printf 'listening on %s — Ctrl-C to stop; exit the guest shell to end a session\n' "$port"
+	session
+	[ $once = 1 ] && break
+	printf '\nsession ended — relistening…\n'
+	sleep 1
+done
